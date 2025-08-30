@@ -1,0 +1,16 @@
+{
+  "Gujarat": {
+    "landAvailability": 85,
+    "permitEase": 80,
+    "gridAccess": 78,
+    "grade": "A-",
+    "notes": "High RE potential, proactive policy"
+  },
+  "Maharashtra": {
+    "landAvailability": 72,
+    "permitEase": 68,
+    "gridAccess": 74,
+    "grade": "B",
+    "notes": "Good infrastructure but slower permits"
+  }
+}
