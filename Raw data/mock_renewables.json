@@ -1,0 +1,35 @@
+[
+  {
+    "Id": "R001",
+    "Name": "Gujarat Solar Park",
+    "Type": "solar",
+    "CapacityMw": 300,
+    "CfEst": 0.22,
+    "AnnualGwh": 578.16,
+    "State": "Gujarat",
+    "Coords": { "Lat": 23.733, "Lon": 71.5 },
+    "Source": "MNRE"
+  },
+  {
+    "Id": "R002",
+    "Name": "Kutch Wind Farm",
+    "Type": "wind",
+    "CapacityMw": 500,
+    "CfEst": 0.34,
+    "AnnualGwh": 1489.2,
+    "State": "Gujarat",
+    "Coords": { "Lat": 21.77, "Lon": 69.6 },
+    "Source": "State RE Dept"
+  },
+  {
+    "Id": "R003",
+    "Name": "Maharashtra Hybrid RE Hub",
+    "Type": "hybrid",
+    "CapacityMw": 450,
+    "CfEst": 0.3,
+    "AnnualGwh": 1182.6,
+    "State": "Maharashtra",
+    "Coords": { "Lat": 19.5, "Lon": 73.4 },
+    "Source": "Gov Policy Doc"
+  }
+]

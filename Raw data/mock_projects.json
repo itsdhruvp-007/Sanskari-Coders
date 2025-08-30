@@ -1,0 +1,58 @@
+[
+  {
+    "projectId": "P001",
+    "projectName": "Dahej GH2 Plant",
+    "organization": "ABC Energy",
+    "assetType": "plant",
+    "status": "existing",
+    "capacityTpd": 100,
+    "capexMusd": 220,
+    "capexKusd": 220000,
+    "state": "Gujarat",
+    "coords": { "lat": 21.708, "lon": 72.618 },
+    "commissioningYear": "2023-01-01",
+    "source": "Gov Report"
+  },
+  {
+    "projectId": "P002",
+    "projectName": "Mundra Storage Hub",
+    "organization": "Coastal H2",
+    "assetType": "storage",
+    "status": "planned",
+    "capacityTpd": 60,
+    "capexMusd": 90,
+    "capexKusd": 90000,
+    "state": "Gujarat",
+    "coords": { "lat": 22.842, "lon": 69.705 },
+    "commissioningYear": "2026-01-01",
+    "source": "Industry News"
+  },
+  {
+    "projectId": "P003",
+    "projectName": "Hazira Electrolyzer",
+    "organization": "XYZ Renewables",
+    "assetType": "plant",
+    "status": "proposed",
+    "capacityTpd": 80,
+    "capexMusd": 180,
+    "capexKusd": 180000,
+    "state": "Gujarat",
+    "coords": { "lat": 21.116, "lon": 72.638 },
+    "commissioningYear": "2027-01-01",
+    "source": "Company Press Release"
+  },
+  {
+    "projectId": "P004",
+    "projectName": "Nhava Sheva LH2 Terminal",
+    "organization": "PortCo",
+    "assetType": "terminal",
+    "status": "proposed",
+    "capacityTpd": 120,
+    "capexMusd": 260,
+    "capexKusd": 260000,
+    "state": "Maharashtra",
+    "coords": { "lat": 18.948, "lon": 72.955 },
+    "commissioningYear": "2028-01-01",
+    "source": "Gov Tender"
+  }
+]

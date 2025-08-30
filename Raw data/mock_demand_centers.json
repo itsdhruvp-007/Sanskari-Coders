@@ -1,0 +1,38 @@
+[
+  {
+    "id": "D001",
+    "name": "Steel Cluster - Hazira",
+    "sector": "steel",
+    "avg_demand_tpd": 70,
+    "state": "Gujarat",
+    "location": { "lat": 21.116, "lon": 72.658 },
+    "meta": { "source": "Industry Survey" }
+  },
+  {
+    "id": "D002",
+    "name": "Fertilizer Plant - Bharuch",
+    "sector": "ammonia",
+    "avg_demand_tpd": 50,
+    "state": "Gujarat",
+    "location": { "lat": 21.705, "lon": 72.995 },
+    "meta": { "source": "Gov Data" }
+  },
+  {
+    "id": "D003",
+    "name": "Refinery - Jamnagar",
+    "sector": "refinery",
+    "avg_demand_tpd": 110,
+    "state": "Gujarat",
+    "location": { "lat": 22.338, "lon": 69.898 },
+    "meta": { "source": "IEA Report" }
+  },
+  {
+    "id": "D004",
+    "name": "Port Logistics - Nhava Sheva",
+    "sector": "transport",
+    "avg_demand_tpd": 90,
+    "state": "Maharashtra",
+    "location": { "lat": 18.955, "lon": 72.946 },
+    "meta": { "source": "Port Authority" }
+  }
+]

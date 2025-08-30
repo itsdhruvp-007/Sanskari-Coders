@@ -1,0 +1,26 @@
+[
+  {
+    "id": "T001",
+    "category": "port",
+    "name": "Mundra Port",
+    "state": "Gujarat",
+    "geometry": { "type": "Point", "coordinates": [69.71, 22.74] },
+    "source": "OSM"
+  },
+  {
+    "id": "T002",
+    "category": "port",
+    "name": "Nhava Sheva Port",
+    "state": "Maharashtra",
+    "geometry": { "type": "Point", "coordinates": [72.95, 18.95] },
+    "source": "Port Authority"
+  },
+  {
+    "id": "T003",
+    "category": "rail",
+    "name": "Surat Junction",
+    "state": "Gujarat",
+    "geometry": { "type": "Point", "coordinates": [72.84, 21.2] },
+    "source": "Indian Railways"
+  }
+]
