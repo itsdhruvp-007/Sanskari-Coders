@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Hydrogen Infrastructure Dashboard</title>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.9.2/mapbox-gl.css' rel='stylesheet' />
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.9.2/mapbox-gl.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #00c6ff;
+            --primary-gradient: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+            --secondary: #8A2BE2;
+            --accent: #00D8A7;
+            --dark-1: #0f172a;
+            --dark-2: #1e293b;
+            --dark-3: #334155;
+            --light: #cbd5e1;
+            --success: #00D8A7;
+            --warning: #FFC107;
+            --danger: #FF4B4B;
+            --sidebar-width: 300px;
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+        
+        body {
+            background-color: var(--dark-1);
+            color: var(--light);
+            overflow-x: hidden;
+        }
+        
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--dark-2);
+            color: white;
+            padding: 1.5rem;
+            transition: var(--transition);
+            overflow-y: auto;
+            box-shadow: 2px 0 15px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+            position: relative;
+        }
+        
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+        }
+        
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--dark-3);
+        }
+        
+        .sidebar-header img {
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+        }
+        
+        .sidebar-header h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .sidebar-section {
+            margin-bottom: 2rem;
+        }
+        
+        .sidebar-section h2 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--light);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .sidebar-section h2 i {
+            margin-right: 0.5rem;
+            color: var(--primary);
+        }
+        
+        /* Toggle Switch */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--dark-3);
+        }
+        
+        .toggle-container:hover {
+            background: rgba(55, 65, 81, 0.6);
+        }
+        
+        .toggle-label {
+            display: flex;
+            align-items: center;
+        }
+        
+        .layer-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            margin-right: 0.75rem;
+        }
+        
+        /* Toggle Switch Design */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--dark-3);
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background: var(--primary-gradient);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            padding: 0.5rem;
+            border-radius: 6px;
+            transition: var(--transition);
+        }
+        
+        .legend-item:hover {
+            background: rgba(55, 65, 81, 0.4);
+        }
+        
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            margin-right: 0.75rem;
+        }
+        
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        /* Header Styles */
+        .header {
+            background: var(--dark-2);
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, var(--primary) 50%, transparent 100%);
+        }
+        
+        .header-title h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .header-title p {
+            font-size: 0.875rem;
+            color: var(--light);
+        }
+        
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        /* KPI Cards */
+        .kpi-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1rem;
+            padding: 1.5rem;
+            background: var(--dark-1);
+        }
+        
+        .kpi-card {
+            background: var(--dark-2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+        }
+        
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .kpi-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        
+        .kpi-title {
+            font-size: 0.875rem;
+            color: var(--light);
+            font-weight: 500;
+        }
+        
+        .kpi-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            background: var(--dark-3);
+        }
+        
+        .kpi-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .kpi-trend {
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        /* Filter Bar */
+        .filter-bar {
+            background: var(--dark-2);
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .filter-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--light);
+        }
+        
+        .filter-select, .filter-slider {
+            padding: 0.6rem 1rem;
+            border: 1px solid var(--dark-3);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            background: var(--dark-3);
+            color: var(--light);
+            transition: var(--transition);
+        }
+        
+        .filter-select:focus, .filter-slider:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .filter-slider {
+            width: 150px;
+            -webkit-appearance: none;
+            height: 6px;
+            border-radius: 5px;
+            background: var(--dark-3);
+            outline: none;
+        }
+        
+        .filter-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .filter-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+        
+        /* Map Container */
+        .map-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Map Controls */
+        .map-controls {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            z-index: 2;
+        }
+        
+        .map-control-button {
+            width: 45px;
+            height: 45px;
+            border-radius: 10px;
+            background: var(--dark-2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            color: var(--light);
+            transition: var(--transition);
+            font-size: 1.1rem;
+        }
+        
+        .map-control-button:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-3px);
+        }
+        
+        /* Popup Styling */
+        .mapboxgl-popup-content {
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 320px;
+            background: var(--dark-2);
+            color: var(--light);
+            border: 1px solid var(--dark-3);
+        }
+        
+        .popup-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: white;
+        }
+        
+        .popup-type {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: var(--primary-gradient);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .popup-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .popup-detail {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--dark-3);
+        }
+        
+        .popup-detail:last-child {
+            border-bottom: none;
+        }
+        
+        .popup-detail-label {
+            font-weight: 500;
+            color: var(--light);
+        }
+        
+        .popup-detail-value {
+            font-weight: 600;
+            color: white;
+        }
+        
+        /* Export Button */
+        .export-button {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(0, 118, 255, 0.3);
+        }
+        
+        .export-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 118, 255, 0.4);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .dashboard-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                max-height: 350px;
+            }
+            
+            .kpi-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .header-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .kpi-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-bar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .filter-group {
+                width: 100%;
+            }
+            
+            .filter-select, .filter-slider {
+                width: 100%;
+            }
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        /* Chart Container */
+        .chart-container {
+            background: var(--dark-2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        }
+        
+        .chart-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: white;
+        }
+        
+        /* Toggle glow effect */
+        input:checked + .slider {
+            box-shadow: 0 0 8px var(--primary);
+        }
+        
+        /* Pulse animation for important elements */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-atom fa-2x" style="background: var(--primary-gradient); -webkit-background-clip: text; background-clip: text; color: transparent;"></i>
+                <h1>H2 Infrastructure</h1>
+            </div>
+            
+            <div class="sidebar-section">
+                <h2><i class="fas fa-layer-group"></i> Map Layers</h2>
+                <div class="toggle-container">
+                    <div class="toggle-label">
+                        <div class="layer-color" style="background: #00c6ff;"></div>
+                        <label for="layer-hydrogen">Hydrogen Projects</label>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="layer-hydrogen" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-container">
+                    <div class="toggle-label">
+                        <div class="layer-color" style="background: #FF4B4B;"></div>
+                        <label for="layer-industrial">Industrial Demand</label>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="layer-industrial" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-container">
+                    <div class="toggle-label">
+                        <div class="layer-color" style="background: #00D8A7;"></div>
+                        <label for="layer-renewable">Renewable Sources</label>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="layer-renewable" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-container">
+                    <div class="toggle-label">
+                        <div class="layer-color" style="background: #8A2BE2;"></div>
+                        <label for="layer-transport">Transport Infrastructure</label>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="layer-transport" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-container">
+                    <div class="toggle-label">
+                        <div class="layer-color" style="background: #FFC107;"></div>
+                        <label for="layer-heatmap">Potential Areas Heatmap</label>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="layer-heatmap">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h2><i class="fas fa-info-circle"></i> Legend</h2>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #00c6ff;"></div>
+                    <span>Hydrogen Projects</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #FF4B4B;"></div>
+                    <span>Industrial Demand</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #00D8A7;"></div>
+                    <span>Renewable Sources</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #8A2BE2;"></div>
+                    <span>Transport Infrastructure</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #FFC107;"></div>
+                    <span>High Potential Areas</span>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h2><i class="fas fa-database"></i> Data Sources</h2>
+                <p style="font-size: 0.875rem; line-height: 1.5; color: #94a3b8;">
+                    Data provided by Global Hydrogen Initiative. Updated in real-time.
+                </p>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <div class="header-title">
+                    <h1>Green Hydrogen Infrastructure Platform</h1>
+                    <p>Monitor and analyze hydrogen production, demand, and infrastructure</p>
+                </div>
+                <div class="header-actions">
+                    <button class="export-button pulse">
+                        <i class="fas fa-download"></i>
+                        Export Data
+                    </button>
+                    <div class="map-control-button">
+                        <i class="fas fa-user"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- KPI Cards -->
+            <div class="kpi-cards">
+                <div class="kpi-card fade-in" style="animation-delay: 0.1s;">
+                    <div class="kpi-header">
+                        <div class="kpi-title">Total Hydrogen Capacity</div>
+                        <div class="kpi-icon" style="background: var(--primary-gradient);">
+                            <i class="fas fa-industry"></i>
+                        </div>
+                    </div>
+                    <div class="kpi-value">2,450 TPD</div>
+                    <div class="kpi-trend" style="color: #00D8A7;">
+                        <i class="fas fa-arrow-up"></i> 12.5% from last month
+                    </div>
+                </div>
+                
+                <div class="kpi-card fade-in" style="animation-delay: 0.2s;">
+                    <div class="kpi-header">
+                        <div class="kpi-title">Unserved Demand</div>
+                        <div class="kpi-icon" style="background: var(--primary-gradient);">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                    </div>
+                    <div class="kpi-value">785 TPD</div>
+                    <div class="kpi-trend" style="color: #FF4B4B;">
+                        <i class="fas fa-arrow-up"></i> 8.3% from last month
+                    </div>
+                </div>
+                
+                <div class="kpi-card fade-in" style="animation-delay: 0.3s;">
+                    <div class="kpi-header">
+                        <div class="kpi-title">Best Site Score</div>
+                        <div class="kpi-icon" style="background: var(--primary-gradient);">
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                    <div class="kpi-value">92/100</div>
+                    <div class="kpi-trend" style="color: #00D8A7;">
+                        Nevada Solar Zone
+                    </div>
+                </div>
+                
+                <div class="kpi-card fade-in" style="animation-delay: 0.4s;">
+                    <div class="kpi-header">
+                        <div class="kpi-title">Projects Pipeline</div>
+                        <div class="kpi-icon" style="background: var(--primary-gradient);">
+                            <i class="fas fa-project-diagram"></i>
+                        </div>
+                    </div>
+                    <div class="kpi-value">42</div>
+                    <div class="kpi-trend" style="color: #00c6ff;">
+                        <i class="fas fa-clock"></i> 18 under construction
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <span class="filter-label">Capacity:</span>
+                    <input type="range" class="filter-slider" id="capacity-slider" min="0" max="500" value="250">
+                    <span id="capacity-value">250 TPD</span>
+                </div>
+                
+                <div class="filter-group">
+                    <span class="filter-label">Status:</span>
+                    <select class="filter-select" id="status-filter">
+                        <option value="all">All Statuses</option>
+                        <option value="operational">Operational</option>
+                        <option value="construction">Under Construction</option>
+                        <option value="planned">Planned</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <span class="filter-label">Sector:</span>
+                    <select class="filter-select" id="sector-filter">
+                        <option value="all">All Sectors</option>
+                        <option value="steel">Steel</option>
+                        <option value="fertilizer">Fertilizer</option>
+                        <option value="refinery">Refinery</option>
+                        <option value="transport">Transport</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <button class="export-button" style="background: var(--primary-gradient);">
+                        <i class="fas fa-filter"></i>
+                        Apply Filters
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Chart Section -->
+            <div class="chart-container">
+                <div class="chart-title">Hydrogen Production by Type (TPD)</div>
+                <canvas id="productionChart" height="100"></canvas>
+            </div>
+            
+            <!-- Map Container -->
+            <div class="map-container">
+                <div id="map"></div>
+                
+                <div class="map-controls">
+                    <button class="map-control-button">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button class="map-control-button">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <button class="map-control-button">
+                        <i class="fas fa-compass"></i>
+                    </button>
+                    <button class="map-control-button">
+                        <i class="fas fa-layer-group"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Mapbox
+        mapboxgl.accessToken = 'pk.eyJ1IjoiZGV2c2ltcGxlIiwiYSI6ImNreWh2dWlndTBidnYydm8zN2pzcjJqZGMifQ.LbVk7_9JrBZaKPGw82kU6g';
+        
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/dark-v10',
+            center: [-98.5795, 39.8283],
+            zoom: 3.5,
+            attributionControl: false
+        });
+        
+        // Add navigation control
+        map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+        
+        // Sample data for demonstration
+        const hydrogenProjects = {
+            'type': 'FeatureCollection',
+            'features': [
+                {
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Point',
+                        'coordinates': [-74.006, 40.7128]
+                    },
+                    'properties': {
+                        'name': 'NYC Hydrogen Plant',
+                        'type': 'Production Facility',
+                        'capacity': 150,
+                        'status': 'Operational',
+                        'source': 'Solar',
+                        'location': 'New York, NY'
+                    }
+                },
+                {
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Point',
+                        'coordinates': [-118.2437, 34.0522]
+                    },
+                    'properties': {
+                        'name': 'LA Storage Facility',
+                        'type': 'Storage',
+                        'capacity': 200,
+                        'status': 'Under Construction',
+                        'source': 'Wind',
+                        'location': 'Los Angeles, CA'
+                    }
+                },
+                {
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Point',
+                        'coordinates': [-87.6298, 41.8781]
+                    },
+                    'properties': {
+                        'name': 'Midwest Hydrogen Hub',
+                        'type': 'Production Facility',
+                        'capacity': 300,
+                        'status': 'Planned',
+                        'source': 'Hybrid',
+                        'location': 'Chicago, IL'
+                    }
+                },
+                {
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Point',
+                        'coordinates': [-95.3698, 29.7604]
+                    },
+                    'properties': {
+                        'name': 'Gulf Coast Terminal',
+                        'type': 'Distribution',
+                        'capacity': 250,
+                        'status': 'Operational',
+                        'source': 'Natural Gas',
+                        'location': 'Houston, TX'
+                    }
+                },
+                {
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Point',
+                        'coordinates': [-122.4194, 37.7749]
+                    },
+                    'properties': {
+                        'name': 'Bay Area Research Center',
+                        'type': 'Research',
+                        'capacity': 50,
+                        'status': 'Operational',
+                        'source': 'Solar',
+                        'location': 'San Francisco, CA'
+                    }
+                }
+            ]
+        };
+        
+        // Add sources and layers when the map loads
+        map.on('load', () => {
+            // Add hydrogen projects source
+            map.addSource('hydrogen-projects', {
+                'type': 'geojson',
+                'data': hydrogenProjects
+            });
+            
+            // Add hydrogen projects layer
+            map.addLayer({
+                'id': 'hydrogen-projects',
+                'type': 'circle',
+                'source': 'hydrogen-projects',
+                'paint': {
+                    'circle-radius': 10,
+                    'circle-color': '#00c6ff',
+                    'circle-stroke-width': 2,
+                    'circle-stroke-color': '#ffffff',
+                    'circle-opacity': 0.8
+                }
+            });
+            
+            // Add heatmap layer for potential areas
+            map.addLayer({
+                'id': 'potential-areas',
+                'type': 'heatmap',
+                'source': {
+                    'type': 'geojson',
+                    'data': {
+                        'type': 'FeatureCollection',
+                        'features': [
+                            {
+                                'type': 'Feature',
+                                'geometry': {
+                                    'type': 'Point',
+                                    'coordinates': [-116.2156, 43.6189]
+                                },
+                                'properties': {
+                                    'density': 80
+                                }
+                            },
+                            {
+                                'type': 'Feature',
+                                'geometry': {
+                                    'type': 'Point',
+                                    'coordinates': [-104.9903, 39.7392]
+                                },
+                                'properties': {
+                                    'density': 70
+                                }
+                            },
+                            {
+                                'type': 'Feature',
+                                'geometry': {
+                                    'type': 'Point',
+                                    'coordinates': [-111.8910, 40.7608]
+                                },
+                                'properties': {
+                                    'density': 90
+                                }
+                            }
+                        ]
+                    }
+                },
+                'paint': {
+                    'heatmap-weight': ['interpolate', ['linear'], ['get', 'density'], 0, 0, 6, 1],
+                    'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 0, 1, 9, 3],
+                    'heatmap-color': [
+                        'interpolate',
+                        ['linear'],
+                        ['heatmap-density'],
+                        0, 'rgba(0, 198, 255, 0)',
+                        0.2, 'rgba(0, 198, 255, 0.5)',
+                        0.4, 'rgba(0, 198, 255, 0.8)',
+                        0.6, 'rgba(0, 216, 167, 0.8)',
+                        0.8, 'rgba(255, 193, 7, 0.8)',
+                        1, 'rgba(255, 193, 7, 1)'
+                    ],
+                    'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 0, 2, 9, 20],
+                    'heatmap-opacity': 0.6
+                }
+            });
+            
+            // Initially hide the heatmap layer
+            map.setLayoutProperty('potential-areas', 'visibility', 'none');
+        });
+        
+        // Add interactivity to the map
+        map.on('click', 'hydrogen-projects', (e) => {
+            const feature = e.features[0];
+            const coordinates = feature.geometry.coordinates.slice();
+            const properties = feature.properties;
+            
+            while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+                coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+            }
+            
+            // Create popup
+            new mapboxgl.Popup()
+                .setLngLat(coordinates)
+                .setHTML(`
+                    <div class="popup-title">${properties.name}</div>
+                    <div class="popup-type">${properties.type}</div>
+                    <div class="popup-details">
+                        <div class="popup-detail">
+                            <span class="popup-detail-label">Capacity:</span>
+                            <span class="popup-detail-value">${properties.capacity} TPD</span>
+                        </div>
+                        <div class="popup-detail">
+                            <span class="popup-detail-label">Status:</span>
+                            <span class="popup-detail-value">${properties.status}</span>
+                        </div>
+                        <div class="popup-detail">
+                            <span class="popup-detail-label">Source:</span>
+                            <span class="popup-detail-value">${properties.source}</span>
+                        </div>
+                        <div class="popup-detail">
+                            <span class="popup-detail-label">Location:</span>
+                            <span class="popup-detail-value">${properties.location}</span>
+                        </div>
+                    </div>
+                `)
+                .addTo(map);
+        });
+        
+        // Change cursor to pointer when hovering over points
+        map.on('mouseenter', 'hydrogen-projects', () => {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+        
+        map.on('mouseleave', 'hydrogen-projects', () => {
+            map.getCanvas().style.cursor = '';
+        });
+        
+        // Layer toggle functionality
+        document.getElementById('layer-hydrogen').addEventListener('change', (e) => {
+            const visibility = e.target.checked ? 'visible' : 'none';
+            map.setLayoutProperty('hydrogen-projects', 'visibility', visibility);
+        });
+        
+        document.getElementById('layer-heatmap').addEventListener('change', (e) => {
+            const visibility = e.target.checked ? 'visible' : 'none';
+            map.setLayoutProperty('potential-areas', 'visibility', visibility);
+        });
+        
+        // Capacity slider functionality
+        const capacitySlider = document.getElementById('capacity-slider');
+        const capacityValue = document.getElementById('capacity-value');
+        
+        capacitySlider.addEventListener('input', () => {
+            capacityValue.textContent = ${capacitySlider.value} TPD;
+        });
+        
+        // Initialize chart
+        const initChart = () => {
+            const ctx = document.getElementById('productionChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Solar', 'Wind', 'Hydro', 'Hybrid', 'Natural Gas'],
+                    datasets: [{
+                        label: 'TPD',
+                        data: [650, 480, 320, 560, 440],
+                        backgroundColor: [
+                            '#FFC107',
+                            '#00c6ff',
+                            '#00D8A7',
+                            '#8A2BE2',
+                            '#FF4B4B'
+                        ],
+                        borderWidth: 0,
+                        borderRadius: 6,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#cbd5e1'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#cbd5e1'
+                            }
+                        }
+                    }
+                }
+            });
+        };
+        
+        // Initialize the application
+        window.addEventListener('load', () => {
+            initChart();
+            
+            // Add fade-in animation to elements
+            document.querySelectorAll('.kpi-card, .chart-container').forEach(el => {
+                el.classList.add('fade-in');
+            });
+        });
+    </script>
+</body>
+</html>
